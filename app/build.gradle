@@ -1,12 +1,13 @@
 apply plugin: 'com.android.application'
 
+def has_leakcanary=false
 android {
-    compileSdkVersion 25
-    buildToolsVersion "25.0.2"
+    compileSdkVersion 23
+    buildToolsVersion "23.0.1"
     defaultConfig {
         applicationId "com.wereading.wereadinghacker"
         minSdkVersion 18
-        targetSdkVersion 25
+        targetSdkVersion 23
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -17,14 +18,28 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    productFlavors {
+        //    注意: 修改 fb_app_id 时, 还需要在 string 中修改 facebook_app_id 的值 !!!
+        // 原包
+//        origin {
+//            has_leakcanary = false
+//        }
+
+        uitest {
+            has_leakcanary = true
+        }
+    }
 }
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
+
     androidTestCompile 'com.android.support.test.uiautomator:uiautomator-v18:2.1.1'
-    compile 'com.android.support:appcompat-v7:25.1.1'
+    compile 'com.android.support:appcompat-v7:23.0.1'
     testCompile 'junit:junit:4.12'
+
+//    debugCompile project(':leakfortest')
+
+    uitestCompile project(':leakfortest')
 }
