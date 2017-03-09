@@ -25,6 +25,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 /**
  * Instrumentation test, which will execute on an Android device.
  *
+ * 选择一本书, 然后翻页300次, 每次翻页间隔 60 到 100 秒.
+ *
  * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
  */
 
@@ -63,10 +65,8 @@ public class WeReadingHackTest {
     }
 
 
-
-
     private void prepareBooks() {
-        mBooks.add("深入分析Java Web技术内幕") ;
+//        mBooks.add("深入分析Java Web技术内幕") ;
         mBooks.add("大学·中庸·尚书·周易") ;
         mBooks.add("人性的弱点") ;
         mBooks.add("瓦尔登湖") ;
@@ -78,29 +78,8 @@ public class WeReadingHackTest {
     @Test
     public void hackReading() throws Exception {
         Thread.sleep(1 * 1000);
-        // 点击书架tab
-//        UiObject bookTab = mDevice.findObject(new UiSelector().className(RelativeLayout.class).index(1));
-//        if ( bookTab.exists() ) {
-//            bookTab.click();
-//        } else {
-//            Assert.fail("book tab not found!!");
-//        }
-        // 点击书架tab
-        UiObject bookTab =  mDevice.findObject(new UiSelector().text("书架"));
-        if ( bookTab.exists() ) {
-            bookTab.click();
-        } else {
-            Assert.fail("book tab not found!!");
-        }
-        Thread.sleep(2 * 1000);
-        // 进入书籍
-        UiObject oneBook = mDevice.findObject(new UiSelector().text(mBooks.get(0)));
-        if (oneBook != null && oneBook.exists()) {
-            oneBook.click();
-        } else {
-            Assert.fail("book not found!!");
-        }
-        Thread.sleep(1 * 1000);
+
+        startReading();
 
         int width = InstrumentationRegistry.getTargetContext().getResources().getDisplayMetrics().widthPixels;
         int height = InstrumentationRegistry.getTargetContext().getResources().getDisplayMetrics().heightPixels;
@@ -108,8 +87,8 @@ public class WeReadingHackTest {
         int min = 60;
         int max = 100;
         int perPage = max - min;
-        // 240分钟的阅读时长
-        int maxCount = 10 ;
+        // 300次翻页, 每次翻页 60 到 100 秒.
+        int maxCount = 300 ;
         boolean isDone = false ;
         // 10书币的阅读时长
         for (int i = 0; i < maxCount; i++) {
@@ -124,7 +103,37 @@ public class WeReadingHackTest {
             }
             double randomValue = Math.random() * perPage;
             int waitTIme = (int) randomValue + min;
-            Thread.sleep(3 * 1000);
+            // 每次翻页等待的时间, 60 ~ 100 秒, 模拟用户真实的阅读耗时
+            Thread.sleep(waitTIme * 1000);
         }
+    }
+
+
+    private void startReading() throws Exception {
+        // 点击书架tab
+        //        UiObject bookTab = mDevice.findObject(new UiSelector().className(RelativeLayout.class).index(1));
+        //        if ( bookTab.exists() ) {
+        //            bookTab.click();
+        //        } else {
+        //            Assert.fail("book tab not found!!");
+        //        }
+
+        // 点击书架tab
+        UiObject bookTab =  mDevice.findObject(new UiSelector().text("书架"));
+        if ( bookTab.exists() ) {
+            bookTab.click();
+        } else {
+            Assert.fail("book tab not found!!");
+        }
+        Thread.sleep(2 * 1000);
+
+        // 进入书籍, 书籍名字可以自选, 从免费书籍中选择即可.
+        UiObject oneBook = mDevice.findObject(new UiSelector().text(mBooks.get(0)));
+        if (oneBook != null && oneBook.exists()) {
+            oneBook.click();
+        } else {
+            Assert.fail("book not found!!");
+        }
+        Thread.sleep(1 * 1000);
     }
 }
