@@ -64,11 +64,11 @@ public class MainActivityTest {
     public void testGotoDetailActivity() throws Exception {
         UiObject uiObject = mDevice.findObject(new UiSelector().className(Button.class));
         // 10书币的阅读时长
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 10; i++) {
             // 如果已经读完, 则向后翻阅
             if ( uiObject.exists() ) {
                 uiObject.click() ;
-                Thread.sleep(3 * 1000);
+                Thread.sleep(i * 30 * 1000);
                 mDevice.pressBack();
             } else {
                 Assert.fail("not found button");
