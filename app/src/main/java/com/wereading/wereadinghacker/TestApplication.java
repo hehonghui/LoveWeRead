@@ -1,11 +1,15 @@
 package com.wereading.wereadinghacker;
 
 import android.app.Application;
+import android.content.Context;
 import android.util.Log;
 
 import com.squareup.leakcanary.LeakCanary;
 
 import java.lang.reflect.Method;
+
+// todo: 不要删除 !!!
+//import android.support.multidex.MultiDex;
 
 /**
  * Created by mrsimple on 9/3/17.
@@ -41,5 +45,11 @@ public class TestApplication extends Application {
                 e.printStackTrace();
             }
         }
+    }
+
+    @Override
+    protected void attachBaseContext(Context base) {
+        //MultiDex.install(this);
+        super.attachBaseContext(base);
     }
 }
