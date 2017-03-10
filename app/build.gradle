@@ -17,6 +17,11 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+
+        // todo: 在测试模式下 Flurry 和小米推送会被使用空实现,如果要在debug时小米请手动修改 thridpart_sdk 的集成.
+        debug {
+            multiDexEnabled false
+        }
     }
 
     productFlavors {
@@ -35,6 +40,9 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
 
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
     androidTestCompile 'com.android.support.test.uiautomator:uiautomator-v18:2.1.1'
     compile 'com.android.support:appcompat-v7:23.0.1'
     testCompile 'junit:junit:4.12'
@@ -42,4 +50,6 @@ dependencies {
 //    debugCompile project(':leakfortest')
 
     uitestCompile project(':leakfortest')
+
+    //compile 'com.android.support:multidex:1.0.1'
 }
