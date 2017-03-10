@@ -68,7 +68,7 @@ public class MainActivityTest {
             // 如果已经读完, 则向后翻阅
             if ( uiObject.exists() ) {
                 uiObject.click() ;
-                Thread.sleep(i * 30 * 1000);
+                Thread.sleep(i <= 0 ? 2 : 20 * 1000);
                 mDevice.pressBack();
             } else {
                 Assert.fail("not found button");
