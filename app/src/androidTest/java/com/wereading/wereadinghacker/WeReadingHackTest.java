@@ -67,6 +67,7 @@ public class WeReadingHackTest {
 
     private void prepareBooks() {
 //        mBooks.add("深入分析Java Web技术内幕") ;
+        mBooks.add("旧制度与大革命");
         mBooks.add("大学·中庸·尚书·周易") ;
         mBooks.add("人性的弱点") ;
         mBooks.add("瓦尔登湖") ;
@@ -77,18 +78,19 @@ public class WeReadingHackTest {
 
     @Test
     public void hackReading() throws Exception {
-        Thread.sleep(1 * 1000);
+        Thread.sleep(2 * 1000);
 
         startReading();
 
         int width = InstrumentationRegistry.getTargetContext().getResources().getDisplayMetrics().widthPixels;
         int height = InstrumentationRegistry.getTargetContext().getResources().getDisplayMetrics().heightPixels;
 
-        int min = 60;
-        int max = 100;
+        int min = 10;
+        int max = 20;
         int perPage = max - min;
         // 300次翻页, 每次翻页 60 到 100 秒.
-        int maxCount = 300 ;
+        // 5h = 5*60*60
+        int maxCount = 18000/min ;
         boolean isDone = false ;
         // 10书币的阅读时长
         for (int i = 0; i < maxCount; i++) {
@@ -110,14 +112,6 @@ public class WeReadingHackTest {
 
 
     private void startReading() throws Exception {
-        // 点击书架tab
-        //        UiObject bookTab = mDevice.findObject(new UiSelector().className(RelativeLayout.class).index(1));
-        //        if ( bookTab.exists() ) {
-        //            bookTab.click();
-        //        } else {
-        //            Assert.fail("book tab not found!!");
-        //        }
-
         // 点击书架tab
         UiObject bookTab =  mDevice.findObject(new UiSelector().text("书架"));
         if ( bookTab.exists() ) {
