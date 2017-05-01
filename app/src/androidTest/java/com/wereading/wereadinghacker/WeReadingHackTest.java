@@ -67,7 +67,6 @@ public class WeReadingHackTest {
 
     private void prepareBooks() {
 //        mBooks.add("深入分析Java Web技术内幕") ;
-        mBooks.add("旧制度与大革命");
         mBooks.add("大学·中庸·尚书·周易") ;
         mBooks.add("人性的弱点") ;
         mBooks.add("瓦尔登湖") ;
