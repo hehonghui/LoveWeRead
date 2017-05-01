@@ -31,7 +31,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  */
 
 @RunWith(AndroidJUnit4.class)
-public class WeReadingHackTest {
+public class WeReadingHackmTest {
 
     private static final String APP_PACKAGE = "com.tencent.weread";
     private static final int LAUNCH_TIMEOUT = 5000;
@@ -68,6 +68,9 @@ public class WeReadingHackTest {
     private void prepareBooks() {
 //        mBooks.add("深入分析Java Web技术内幕") ;
 //        mBooks.add("旧制度与大革命");
+//        mBooks.add("比利战争");
+//        mBooks.add("极客与团队");
+//        mBooks.add("西游日记");
         mBooks.add("大学·中庸·尚书·周易") ;
         mBooks.add("人性的弱点") ;
         mBooks.add("瓦尔登湖") ;
@@ -79,39 +82,61 @@ public class WeReadingHackTest {
     @Test
     public void hackReading() throws Exception {
         Thread.sleep(2 * 1000);
-
-        startReading();
-
         int width = InstrumentationRegistry.getTargetContext().getResources().getDisplayMetrics().widthPixels;
         int height = InstrumentationRegistry.getTargetContext().getResources().getDisplayMetrics().heightPixels;
+        int i = 0;
+        boolean isDone = false ;
 
         int min = 10;
         int max = 20;
         int perPage = max - min;
         // 300次翻页, 每次翻页 60 到 100 秒.
-        // 5h = 5*60*60
+        // 5h = 5*60*60 = 18000
         int maxCount = 18000/min ;
-        boolean isDone = false ;
-        // 10书币的阅读时长
-        for (int i = 0; i < maxCount; i++) {
-            UiObject uiObject = mDevice.findObject(new UiSelector().text("点评此书"));
-            // 如果已经读完, 则向后翻阅
-            if ( uiObject.exists()) {
-                // mDevice.click(60, height - 80);
-                isDone = true;
-                mDevice.pressBack();
-                mBooks.remove(0);
-            } else {
-                // 未读完, 则向前翻页
-                mDevice.click(width - 60, height - 80);
-            }
-            double randomValue = Math.random() * perPage;
-            int waitTIme = (int) randomValue + min;
-            // 每次翻页等待的时间, 60 ~ 100 秒, 模拟用户真实的阅读耗时
-            Thread.sleep(waitTIme * 1000);
-        }
-    }
 
+        // 图书列表循环
+        while (i < maxCount ){
+            startReading();
+            // 翻页循环
+            while (i < maxCount & isDone == false){
+
+                // 如果已经读完, 为isDone置位
+                if ( isTheEnd()) {
+                    isDone = true;
+                } else {
+                    double randomValue = Math.random() * perPage;
+                    int waitTIme = (int) randomValue + min;
+                    // 每次翻页等待的时间, 模拟用户真实的阅读耗时
+                    Thread.sleep(waitTIme * 1000);
+                    // 未读完, 则向前翻页,翻页计数
+                    mDevice.click(width - 60, height - 180);
+                    ++i;
+                }
+
+            }
+            // 退回主界面 移除读完的图书 并为isDone置位
+            mDevice.pressBack();
+            mBooks.remove(0);
+            isDone = false;
+        }
+        // 完成后锁屏
+        mDevice.sleep();
+
+    }
+    private boolean isTheEnd(){
+        ArrayList<String> mEndFlag = new ArrayList<>();
+        mEndFlag.add("点评此书");
+        mEndFlag.add("未完待续");
+        mEndFlag.add("购买本书");
+        mEndFlag.add("讲解本书");
+        mEndFlag.add("可能感兴趣的书");
+        for (String str :
+                mEndFlag) {
+            if (mDevice.findObject(new UiSelector().text(str)).exists())
+                return true;
+        }
+        return false;
+    }
 
     private void startReading() throws Exception {
         // 点击书架tab
