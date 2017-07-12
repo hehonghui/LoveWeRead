@@ -66,7 +66,7 @@ public class WeReadingHackTest {
 
 
     private void prepareBooks() {
-//        mBooks.add("深入分析Java Web技术内幕") ;
+        mBooks.add("深入分析Java Web技术内幕") ;
         mBooks.add("大学·中庸·尚书·周易") ;
         mBooks.add("人性的弱点") ;
         mBooks.add("瓦尔登湖") ;
@@ -123,16 +123,17 @@ public class WeReadingHackTest {
         if ( bookTab.exists() ) {
             bookTab.click();
         } else {
-            Assert.fail("book tab not found!!");
+            Assert.fail("book tab (书架) not found!!");
         }
         Thread.sleep(2 * 1000);
 
+        String bookName = mBooks.get(6) ;
         // 进入书籍, 书籍名字可以自选, 从免费书籍中选择即可.
-        UiObject oneBook = mDevice.findObject(new UiSelector().text(mBooks.get(0)));
+        UiObject oneBook = mDevice.findObject(new UiSelector().text(bookName));
         if (oneBook != null && oneBook.exists()) {
             oneBook.click();
         } else {
-            Assert.fail("book not found!!");
+            Assert.fail("book " + bookName + " not found!!");
         }
         Thread.sleep(1 * 1000);
     }
