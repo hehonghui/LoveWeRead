@@ -157,6 +157,13 @@ public class OppoAppStoreTest {
         }
     }
 
+    /**
+     * 可以分出两套代码执行.
+     * 1. 自动安装.
+     * 2. 外部安装.
+     *
+     * @throws UiObjectNotFoundException
+     */
     private void isInstalledFromOutside() throws UiObjectNotFoundException {
         try {
             UiObject marketInstallObject = mDevice.findObject(new UiSelector().resourceId("com.oppo.market:id/button_download"));
