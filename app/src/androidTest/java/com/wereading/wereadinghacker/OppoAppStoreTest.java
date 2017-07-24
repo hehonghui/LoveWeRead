@@ -19,6 +19,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static android.support.test.espresso.matcher.ViewMatchers.assertThat;
+import static org.hamcrest.core.IsNull.notNullValue;
+
 /**
  * Instrumentation test, which will execute on an Android device.
  * <p>
@@ -41,15 +44,15 @@ public class OppoAppStoreTest {
         // Initialize UiDevice instance
         mDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
 
-//        // Start from the home screen
-//        mDevice.pressHome();
-//
+        // Start from the home screen
+        mDevice.pressHome();
+
 //        checkNoCrashDialog();
 //
-//        // Wait for launcher
-//        final String launcherPackage = mDevice.getLauncherPackageName();
-//        assertThat(launcherPackage, notNullValue());
-//        mDevice.wait(Until.hasObject(By.pkg(launcherPackage).depth(0)), LAUNCH_TIMEOUT);
+        // Wait for launcher
+        final String launcherPackage = mDevice.getLauncherPackageName();
+        assertThat(launcherPackage, notNullValue());
+        mDevice.wait(Until.hasObject(By.pkg(launcherPackage).depth(0)), LAUNCH_TIMEOUT);
 
         // Launch the app
         Context context = InstrumentationRegistry.getContext();
