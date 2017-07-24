@@ -79,7 +79,7 @@ public class OppoAppStoreTest {
 
     @Test
     public void startAppStore() throws Exception {
-        Thread.sleep(1000);
+        Thread.sleep(1500);
 
         checkNoCrashDialog();
 
@@ -92,7 +92,6 @@ public class OppoAppStoreTest {
         // 进入搜索页面
         if (isValidObject(searchTv)) {
             searchTv.click();
-
             Thread.sleep(1000);
 
             UiObject searchKeywordTv = mDevice.findObject(new UiSelector().resourceId("com.oppo.market:id/et_search"));
@@ -103,13 +102,12 @@ public class OppoAppStoreTest {
                 // click to search
                 goSearch.click();
             }
-
             Thread.sleep(1000);
             UiObject newsDogLiteObj;
             int times = 0;
-            int delay ;
+            int factor;
             while (times++ < 10) {
-                delay = 0 ;
+                factor = 1 ;
                 newsDogLiteObj = mDevice.findObject(new UiSelector().text("NewsDog - Daily News"));
                 if (isValidObject(newsDogLiteObj)) {
                     newsDogLiteObj.click();
@@ -117,11 +115,11 @@ public class OppoAppStoreTest {
                 } else if ( times % 3 == 0 && isValidObject(goSearch) ){ // 没有搜索成功, 则重新搜索
                     // click to search
                     goSearch.click();
-                    delay = 1500 ;
+                    factor = 3 ;
                 }
-                Thread.sleep(1500 + delay);
+                Thread.sleep(factor * 1000);
             }
-            Thread.sleep(1500);
+            Thread.sleep(1000);
             UiObject installAction = mDevice.findObject(new UiSelector().resourceId("com.oppo.market:id/button_download"));
             if (isValidObject(installAction)) {
                 installAction.click();
@@ -150,17 +148,17 @@ public class OppoAppStoreTest {
     private void waitingForDownload() throws Exception {
         int times = 0;
         // oppo 逻辑
-        while (times++ <= 45) {
+        while (times++ <= 90) {
             // 自动安装
             if (isPkgInstalled(InstrumentationRegistry.getTargetContext(), TARGET_PKG) ) {
                 break;
             }
-            Thread.sleep(2 * 1000);
+            Thread.sleep(1 * 1000);
         }
 
         checkNoCrashDialog();
 
-        Thread.sleep(3 * 1000);
+        Thread.sleep(1000);
         // open newsdog
         openNewsDog("com.oppo.market:id/button_download");
     }
