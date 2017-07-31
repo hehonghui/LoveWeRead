@@ -12,6 +12,13 @@ import android.support.test.uiautomator.UiObject;
 import android.support.test.uiautomator.UiObjectNotFoundException;
 import android.support.test.uiautomator.UiSelector;
 import android.support.test.uiautomator.Until;
+import android.util.Log;
+
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 
 import junit.framework.Assert;
 
@@ -34,7 +41,7 @@ import static org.hamcrest.core.IsNull.notNullValue;
 public class OppoAppStoreTest {
 
     private static final String APP_PACKAGE = "com.oppo.market";
-    private static final String TARGET_PKG = "com.newsdog.daily";
+    private static final String TARGET_PKG = "com.newsdog";
 
     private static final int LAUNCH_TIMEOUT = 3000;
     private UiDevice mDevice;
@@ -47,8 +54,6 @@ public class OppoAppStoreTest {
         // Start from the home screen
         mDevice.pressHome();
 
-//        checkNoCrashDialog();
-//
         // Wait for launcher
         final String launcherPackage = mDevice.getLauncherPackageName();
         assertThat(launcherPackage, notNullValue());
@@ -65,26 +70,10 @@ public class OppoAppStoreTest {
         mDevice.wait(Until.hasObject(By.pkg(APP_PACKAGE).depth(0)), LAUNCH_TIMEOUT);
     }
 
-    private void checkNoCrashDialog() {
-//        try {
-//            UiObject okObj = mDevice.findObject(new UiSelector().resourceId("android:id/button1").text("OK"));
-//            while (isValidObject(okObj)) {
-//                okObj = mDevice.findObject(new UiSelector().resourceId("android:id/button1").text("OK"));
-//                if ( isValidObject(okObj)) {
-//                    okObj.click();
-//                }
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-    }
-
 
     @Test
     public void startAppStore() throws Exception {
-        Thread.sleep(1500);
-
-        checkNoCrashDialog();
+        Thread.sleep(2000);
 
         UiObject searchTv = mDevice.findObject(new UiSelector().resourceId("com.oppo.market:id/ll_bg"));
         // 等待找到搜索框
@@ -96,6 +85,8 @@ public class OppoAppStoreTest {
         if (isValidObject(searchTv)) {
             searchTv.click();
             Thread.sleep(1000);
+
+            sendRequest();
 
             UiObject searchKeywordTv = mDevice.findObject(new UiSelector().resourceId("com.oppo.market:id/et_search"));
             searchKeywordTv.setText("NewsDog");
@@ -111,7 +102,7 @@ public class OppoAppStoreTest {
             int factor;
             while (times++ < 10) {
                 factor = 1 ;
-                newsDogLiteObj = mDevice.findObject(new UiSelector().text("NewsDog - Daily News"));
+                newsDogLiteObj = mDevice.findObject(new UiSelector().text("NewsDog").className("android.widget.TextView"));
                 if (isValidObject(newsDogLiteObj)) {
                     newsDogLiteObj.click();
                     break;
@@ -137,6 +128,30 @@ public class OppoAppStoreTest {
     }
 
 
+    private void sendRequest() {
+        new Thread() {
+            @Override
+            public void run() {
+                RequestQueue requestQueue = Volley.newRequestQueue(InstrumentationRegistry.getContext()) ;
+                StringRequest request = new StringRequest("https://app.appsflyer.com/com.newsdog?pid=oppo&c=000&af_r=http://www.baidu.com", new Response.Listener<String>() {
+
+                    @Override
+                    public void onResponse(String response) {
+                        Log.e("", "### request af resp : " + response) ;
+                    }
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError volleyError) {
+                        Log.e("", "### request af error : " + volleyError) ;
+                    }
+                }) ;
+                request.setShouldCache(false) ;
+                requestQueue.add(request) ;
+            }
+        }.start();
+    }
+
+
     private static boolean isPkgInstalled(Context context, String pkgName) {
         PackageInfo packageInfo = null;
         try {
@@ -158,9 +173,6 @@ public class OppoAppStoreTest {
             }
             Thread.sleep(1 * 1000);
         }
-
-        checkNoCrashDialog();
-
         Thread.sleep(1000);
         // open newsdog
         openNewsDog("com.oppo.market:id/button_download");
