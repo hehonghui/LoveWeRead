@@ -36,7 +36,6 @@ import static org.hamcrest.core.IsNull.notNullValue;
  *
  * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
  */
-
 @RunWith(AndroidJUnit4.class)
 public class OppoAppStoreTest {
 
@@ -54,6 +53,8 @@ public class OppoAppStoreTest {
         // Start from the home screen
         mDevice.pressHome();
 
+        checkNoCrashDialog();
+
         // Wait for launcher
         final String launcherPackage = mDevice.getLauncherPackageName();
         assertThat(launcherPackage, notNullValue());
@@ -70,22 +71,39 @@ public class OppoAppStoreTest {
         mDevice.wait(Until.hasObject(By.pkg(APP_PACKAGE).depth(0)), LAUNCH_TIMEOUT);
     }
 
+    private void checkNoCrashDialog() {
+        try {
+            UiObject okObj = mDevice.findObject(new UiSelector().resourceId("android:id/button1").text("OK"));
+            while (isValidObject(okObj)) {
+                okObj = mDevice.findObject(new UiSelector().resourceId("android:id/button1").text("OK"));
+                if ( isValidObject(okObj)) {
+                    okObj.click();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 
     @Test
     public void startAppStore() throws Exception {
-        Thread.sleep(2000);
-
+        Thread.sleep(1000);
         UiObject searchTv = mDevice.findObject(new UiSelector().resourceId("com.oppo.market:id/ll_bg"));
         // 等待找到搜索框
-        if ( !isValidObject(searchTv)) {
-            Thread.sleep(2000);
+        int count = 0 ;
+        while ( !isValidObject(searchTv) ) {
+            Thread.sleep(500);
             searchTv = mDevice.findObject(new UiSelector().resourceId("com.oppo.market:id/ll_bg"));
+            if ( count++ >= 10 ) {
+                break;
+            }
         }
         // 进入搜索页面
         if (isValidObject(searchTv)) {
             searchTv.click();
             Thread.sleep(1000);
-
+            checkNoCrashDialog();
             sendRequest();
 
             UiObject searchKeywordTv = mDevice.findObject(new UiSelector().resourceId("com.oppo.market:id/et_search"));
@@ -100,7 +118,7 @@ public class OppoAppStoreTest {
             UiObject newsDogLiteObj;
             int times = 0;
             int factor;
-            while (times++ < 10) {
+            while (times++ < 15) {
                 factor = 1 ;
                 newsDogLiteObj = mDevice.findObject(new UiSelector().text("NewsDog").className("android.widget.TextView"));
                 if (isValidObject(newsDogLiteObj)) {
@@ -158,7 +176,6 @@ public class OppoAppStoreTest {
             packageInfo = context.getPackageManager().getPackageInfo(pkgName, 0);
         } catch (PackageManager.NameNotFoundException e) {
             packageInfo = null;
-//            e.printStackTrace();
         }
         return packageInfo != null;
     }
@@ -166,11 +183,12 @@ public class OppoAppStoreTest {
     private void waitingForDownload() throws Exception {
         int times = 0;
         // oppo 逻辑
-        while (times++ <= 90) {
+        while (times++ <= 120) {
             // 自动安装
             if (isPkgInstalled(InstrumentationRegistry.getTargetContext(), TARGET_PKG) ) {
                 break;
             }
+            checkNoCrashDialog();
             Thread.sleep(1 * 1000);
         }
         Thread.sleep(1000);
