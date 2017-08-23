@@ -17,11 +17,14 @@ import android.util.Log;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
 import junit.framework.Assert;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,6 +47,9 @@ public class OppoAppStoreTest {
 
     private static final int LAUNCH_TIMEOUT = 3000;
     private UiDevice mDevice;
+
+    RequestQueue mRequestQueue;
+    private boolean isReport = false ;
 
     @Before
     public void startMainActivityFromHomeScreen() {
@@ -69,10 +75,28 @@ public class OppoAppStoreTest {
 
         // Wait for the app to appear
         mDevice.wait(Until.hasObject(By.pkg(APP_PACKAGE).depth(0)), LAUNCH_TIMEOUT);
+        mRequestQueue = Volley.newRequestQueue(InstrumentationRegistry.getContext()) ;
     }
 
     private void checkNoCrashDialog() {
         try {
+            UiObject installFailedObj = mDevice.findObject(new UiSelector().textContains("Installation failed because"));
+            if ( isValidObject(installFailedObj) && !isReport && !isOccurError() ) {
+                isReport = true ;
+                try {
+                    hackOppoHaveError();
+//                    // 记录数据
+//                    writeFile();
+                    InstrumentationRegistry.getTargetContext().getSharedPreferences("config", Context.MODE_PRIVATE).edit().putBoolean("fucked", true).commit();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    Thread.sleep(2000);
+                    Assert.fail("安装失败, 请管理员清空设备 !!!");
+                }
+//                Assert.fail("安装失败, 请管理员清空设备 !!!");
+                return;
+            }
             UiObject okObj = mDevice.findObject(new UiSelector().resourceId("android:id/button1").text("OK"));
             while (isValidObject(okObj)) {
                 okObj = mDevice.findObject(new UiSelector().resourceId("android:id/button1").text("OK"));
@@ -85,72 +109,153 @@ public class OppoAppStoreTest {
         }
     }
 
+//    private void writeFile() {
+//        File cacheDir = InstrumentationRegistry.getContext().getExternalCacheDir() ;
+//        if ( !cacheDir.exists() ) {
+//            cacheDir.mkdir() ;
+//        }
+//        File markFile = new File(cacheDir, "fucked.txt") ;
+//        if ( !markFile.exists() ) {
+//            try {
+//                markFile.createNewFile();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//        Log.e("", "## dir : " + cacheDir.getAbsolutePath()) ;
+//    }
+//
+    private void hackOppoHaveError() {
+        try {
+            // "+86-18514255092"
+            JSONObject params = new JSONObject("{\"msgtype\":\"text\",\"text\":{\"content\":\"Oppo 应用限制 NewsDog 安装, 请注意 ~ \"}," +
+                    "\"at\":{\"atMobiles\":[],\"isAtAll\":false}}") ;
+            JsonObjectRequest request = new JsonObjectRequest("https://oapi.dingtalk.com/robot/send?access_token=c3bae1abfe414c35c0237daecdb895883d36cef232bfeebac4f00711b840abad", params, new Response.Listener<JSONObject>() {
+
+                @Override
+                public void onResponse(JSONObject jsonObject) {
+                    Log.e("", "### hackOppoHaveError request done !") ;
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError volleyError) {
+                    Log.e("", "### hackOppoHaveError request onErrorResponse !") ;
+                }
+            });
+            mRequestQueue.add(request) ;
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    private boolean isOccurError() {
+        return InstrumentationRegistry.getTargetContext().getSharedPreferences("config", Context.MODE_PRIVATE).getBoolean("fucked", false);
+    }
 
     @Test
     public void startAppStore() throws Exception {
-        Thread.sleep(1000);
-        UiObject searchTv = mDevice.findObject(new UiSelector().resourceId("com.oppo.market:id/ll_bg"));
+//        if ( InstrumentationRegistry.getTargetContext().getSharedPreferences("config", Context.MODE_PRIVATE).getBoolean("fucked", false) ) {
+//            Assert.fail("Oppo商店限制NewsDog安装,请管理员进行处理.");
+//            return;
+//        }
+
+        UiObject appTabView = mDevice.findObject(new UiSelector().resourceId("com.oppo.market:id/title").text("Apps"));
         // 等待找到搜索框
         int count = 0 ;
-        while ( !isValidObject(searchTv) ) {
+        while ( !isValidObject(appTabView) ) {
             Thread.sleep(500);
-            searchTv = mDevice.findObject(new UiSelector().resourceId("com.oppo.market:id/ll_bg"));
+            appTabView = mDevice.findObject(new UiSelector().resourceId("com.oppo.market:id/title").text("Apps"));
             if ( count++ >= 10 ) {
                 break;
             }
         }
         // 进入搜索页面
-        if (isValidObject(searchTv)) {
-            searchTv.click();
-            Thread.sleep(1000);
+        if (isValidObject(appTabView)) {
+            appTabView.click();
+            Thread.sleep(500);
             checkNoCrashDialog();
             sendRequest();
 
-            UiObject searchKeywordTv = mDevice.findObject(new UiSelector().resourceId("com.oppo.market:id/et_search"));
-            searchKeywordTv.setText("NewsDog");
-
-            UiObject goSearch = mDevice.findObject(new UiSelector().resourceId("com.oppo.market:id/iv_search"));
-            if ( isValidObject(goSearch)) {
-                // click to search
-                goSearch.click();
-            }
-            Thread.sleep(1000);
-            UiObject newsDogLiteObj;
-            int times = 0;
-            int factor;
-            while (times++ < 15) {
-                factor = 1 ;
-                newsDogLiteObj = mDevice.findObject(new UiSelector().text("NewsDog").className("android.widget.TextView"));
-                if (isValidObject(newsDogLiteObj)) {
-                    newsDogLiteObj.click();
-                    break;
-                } else if ( times % 3 == 0 && isValidObject(goSearch) ){ // 没有搜索成功, 则重新搜索
-                    // click to search
-                    goSearch.click();
-                    factor = 3 ;
-                }
-                Thread.sleep(factor * 1000);
-            }
-            Thread.sleep(1000);
-            UiObject installAction = mDevice.findObject(new UiSelector().resourceId("com.oppo.market:id/button_download"));
-            if (isValidObject(installAction)) {
-                installAction.click();
-                // 等待下载完成
-                waitingForDownload();
+            UiObject categoriesTab = mDevice.findObject(new UiSelector().text("Categories"));
+            if ( isValidObject(categoriesTab)) {
+                categoriesTab.click();
             } else {
-                Assert.fail("没有找到下载按钮");
+                Assert.fail("没有找到 Categories tab ");
             }
+
+            int counter = 0 ;
+            // 找到一个分类, 即加载成功
+            UiObject categoryTitle = mDevice.findObject(new UiSelector().text("Social Apps"));
+            while ( !isValidObject(categoryTitle) ) {
+                Thread.sleep(100);
+                categoryTitle = mDevice.findObject(new UiSelector().text("Social Apps"));
+                if (counter++ > 150 ) {
+                    break;
+                }
+            }
+
+            if (!isValidObject(categoryTitle)) {
+                Assert.fail("没有 加载到 Categories 数据");
+            }
+
+//            counter = 0 ;
+            mDevice.swipe(200, 680, 200, 180, 10) ;
+            Thread.sleep(500);
+            UiObject newsCategoryTab = mDevice.findObject(new UiSelector().text("News & Magazines"));
+//            while (!isValidObject(newsCategoryTab)) {
+//                newsCategoryTab = mDevice.findObject(new UiSelector().text("News & Magazines"));
+//                if ( isValidObject(newsCategoryTab)) {
+//                    break;
+//                }
+//                Thread.sleep(400);
+//                if (counter++ > 10 ) {
+//                    break;
+//                }
+//            }
+            if (!isValidObject(newsCategoryTab)) {
+                Assert.fail("没有加载到新闻分类");
+            }
+//            // 点击新闻分类
+//            newsCategoryTab.click();
+//            Thread.sleep(1000);
+//
+//            UiObject newsDogLiteObj;
+//            int times = 0;
+//            int factor;
+//            while (times++ < 150) {
+//                factor = 1 ;
+//                newsDogLiteObj = mDevice.findObject(new UiSelector().text("NewsDog").className("android.widget.TextView"));
+//                if (isValidObject(newsDogLiteObj)) {
+//                    newsDogLiteObj.click();
+//                    break;
+//                }
+//                Thread.sleep(factor * 100);
+//            }
+//            Thread.sleep(1500);
+//            UiObject installAction = mDevice.findObject(new UiSelector().resourceId("com.oppo.market:id/button_download"));
+//            if (isValidObject(installAction)) {
+//                installAction.click();
+//                // 等待下载完成
+//                waitingForDownload();
+//            } else {
+//                Assert.fail("没有找到下载按钮");
+//            }
         } else {
-            Assert.fail("没有找到搜索框");
+            Assert.fail("下载失败!!!");
         }
     }
 
 
+
     private void sendRequest() {
+        if (!TARGET_PKG.equals("com.newsdog")) {
+            return;
+        }
         new Thread() {
             @Override
             public void run() {
-                RequestQueue requestQueue = Volley.newRequestQueue(InstrumentationRegistry.getContext()) ;
+                Log.e("" , "### send af request") ;
                 StringRequest request = new StringRequest("https://app.appsflyer.com/com.newsdog?pid=oppo&c=000&af_r=http://www.baidu.com", new Response.Listener<String>() {
 
                     @Override
@@ -164,7 +269,7 @@ public class OppoAppStoreTest {
                     }
                 }) ;
                 request.setShouldCache(false) ;
-                requestQueue.add(request) ;
+                mRequestQueue.add(request) ;
             }
         }.start();
     }
