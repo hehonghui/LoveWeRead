@@ -81,12 +81,11 @@ public class OppoAppStoreTest {
     private void checkNoCrashDialog() {
         try {
             UiObject installFailedObj = mDevice.findObject(new UiSelector().textContains("Installation failed because"));
-            if ( isValidObject(installFailedObj) && !isReport && !isOccurError() ) {
+            if ( isValidObject(installFailedObj) && !isReport ) {
                 isReport = true ;
                 try {
                     hackOppoHaveError();
-//                    // 记录数据
-//                    writeFile();
+                   // 记录数据
                     InstrumentationRegistry.getTargetContext().getSharedPreferences("config", Context.MODE_PRIVATE).edit().putBoolean("fucked", true).commit();
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -94,7 +93,6 @@ public class OppoAppStoreTest {
                     Thread.sleep(2000);
                     Assert.fail("安装失败, 请管理员清空设备 !!!");
                 }
-//                Assert.fail("安装失败, 请管理员清空设备 !!!");
                 return;
             }
             UiObject okObj = mDevice.findObject(new UiSelector().resourceId("android:id/button1").text("OK"));
@@ -109,23 +107,10 @@ public class OppoAppStoreTest {
         }
     }
 
-//    private void writeFile() {
-//        File cacheDir = InstrumentationRegistry.getContext().getExternalCacheDir() ;
-//        if ( !cacheDir.exists() ) {
-//            cacheDir.mkdir() ;
-//        }
-//        File markFile = new File(cacheDir, "fucked.txt") ;
-//        if ( !markFile.exists() ) {
-//            try {
-//                markFile.createNewFile();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        }
-//        Log.e("", "## dir : " + cacheDir.getAbsolutePath()) ;
-//    }
-//
     private void hackOppoHaveError() {
+        if (isOccurError()) {
+            return;
+        }
         try {
             // "+86-18514255092"
             JSONObject params = new JSONObject("{\"msgtype\":\"text\",\"text\":{\"content\":\"Oppo 应用限制 NewsDog 安装, 请注意 ~ \"}," +
@@ -199,48 +184,37 @@ public class OppoAppStoreTest {
                 Assert.fail("没有 加载到 Categories 数据");
             }
 
-//            counter = 0 ;
-            mDevice.swipe(200, 680, 200, 180, 10) ;
-            Thread.sleep(500);
+            mDevice.swipe(200, 650, 200, 180, 20) ;
+            Thread.sleep(1200);
             UiObject newsCategoryTab = mDevice.findObject(new UiSelector().text("News & Magazines"));
-//            while (!isValidObject(newsCategoryTab)) {
-//                newsCategoryTab = mDevice.findObject(new UiSelector().text("News & Magazines"));
-//                if ( isValidObject(newsCategoryTab)) {
-//                    break;
-//                }
-//                Thread.sleep(400);
-//                if (counter++ > 10 ) {
-//                    break;
-//                }
-//            }
             if (!isValidObject(newsCategoryTab)) {
                 Assert.fail("没有加载到新闻分类");
             }
-//            // 点击新闻分类
-//            newsCategoryTab.click();
-//            Thread.sleep(1000);
-//
-//            UiObject newsDogLiteObj;
-//            int times = 0;
-//            int factor;
-//            while (times++ < 150) {
-//                factor = 1 ;
-//                newsDogLiteObj = mDevice.findObject(new UiSelector().text("NewsDog").className("android.widget.TextView"));
-//                if (isValidObject(newsDogLiteObj)) {
-//                    newsDogLiteObj.click();
-//                    break;
-//                }
-//                Thread.sleep(factor * 100);
-//            }
-//            Thread.sleep(1500);
-//            UiObject installAction = mDevice.findObject(new UiSelector().resourceId("com.oppo.market:id/button_download"));
-//            if (isValidObject(installAction)) {
-//                installAction.click();
-//                // 等待下载完成
-//                waitingForDownload();
-//            } else {
-//                Assert.fail("没有找到下载按钮");
-//            }
+            // 点击新闻分类
+            newsCategoryTab.click();
+            Thread.sleep(1000);
+
+            UiObject newsDogLiteObj;
+            int times = 0;
+            int factor;
+            while (times++ < 150) {
+                factor = 1 ;
+                newsDogLiteObj = mDevice.findObject(new UiSelector().text("NewsDog").className("android.widget.TextView"));
+                if (isValidObject(newsDogLiteObj)) {
+                    newsDogLiteObj.click();
+                    break;
+                }
+                Thread.sleep(factor * 100);
+            }
+            Thread.sleep(1500);
+            UiObject installAction = mDevice.findObject(new UiSelector().resourceId("com.oppo.market:id/button_download"));
+            if (isValidObject(installAction)) {
+                installAction.click();
+                // 等待下载完成
+                waitingForDownload();
+            } else {
+                Assert.fail("没有找到下载按钮");
+            }
         } else {
             Assert.fail("下载失败!!!");
         }
