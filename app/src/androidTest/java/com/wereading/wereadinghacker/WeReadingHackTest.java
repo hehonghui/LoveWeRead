@@ -78,9 +78,7 @@ public class WeReadingHackTest {
     @Test
     public void hackReading() throws Exception {
         Thread.sleep(1 * 1000);
-
         startReading();
-
         int width = InstrumentationRegistry.getTargetContext().getResources().getDisplayMetrics().widthPixels;
         int height = InstrumentationRegistry.getTargetContext().getResources().getDisplayMetrics().heightPixels;
 
@@ -110,14 +108,6 @@ public class WeReadingHackTest {
 
 
     private void startReading() throws Exception {
-        // 点击书架tab
-        //        UiObject bookTab = mDevice.findObject(new UiSelector().className(RelativeLayout.class).index(1));
-        //        if ( bookTab.exists() ) {
-        //            bookTab.click();
-        //        } else {
-        //            Assert.fail("book tab not found!!");
-        //        }
-
         // 点击书架tab
         UiObject bookTab =  mDevice.findObject(new UiSelector().text("书架"));
         if ( bookTab.exists() ) {
